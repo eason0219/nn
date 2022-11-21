@@ -11,12 +11,16 @@ float *cost;
 float full_cost;
 float **input;
 float **desired_outputs;
+float mse=0,tmse=0;
 int num_training_ex;
 int n=1;
+FILE *fptr;
+void compute_mse(int it);
 
 int main(void)
 {
     int i;
+    fptr=fopen("data.csv","w");
 
     srand(time(0));
 
@@ -72,6 +76,7 @@ int main(void)
     get_desired_outputs();
 
     train_neural_net();
+    fclose(fptr);
     test_nn();
 
     if(dinit()!= SUCCESS_DINIT)
@@ -236,6 +241,7 @@ void train_neural_net(void)
             back_prop(i);
             update_weights();
         }
+        compute_mse(it);
     }
 }
 
@@ -307,17 +313,32 @@ void compute_cost(int i)
     int j;
     float tmpcost=0;
     float tcost=0;
-
-    for(j=0;j<num_neurons[num_layers-1];j++)
+    
+    if(fptr==NULL)
     {
-        tmpcost = desired_outputs[i][j] - lay[num_layers-1].neu[j].actv;
-        cost[j] = (tmpcost * tmpcost)/2;
-        tcost = tcost + cost[j];
-    }   
-
-    full_cost = (full_cost + tcost)/n;
-    n++;
+    	printf("Can not open the file.");
+    }
+    else
+    {
+    	 for(j=0;j<num_neurons[num_layers-1];j++)
+        {
+            tmpcost = desired_outputs[i][j] - lay[num_layers-1].neu[j].actv;
+            mse+=tmpcost * tmpcost;
+            cost[j] = (tmpcost * tmpcost)/2;
+            tcost = tcost + cost[j];
+        }
+        
+        full_cost = (full_cost + tcost)/n;
+        n++;
+    }
     // printf("Full Cost: %f\n",full_cost);
+}
+
+// Compute the Mean-Square Error
+void compute_mse(int it)
+{
+    tmse=mse/(4*(it+1));
+    fprintf(fptr,"%d,%f\n",it+1,tmse);
 }
 
 // Back Propogate Error
@@ -386,11 +407,13 @@ void test_nn(void)
 
 // TODO: Add different Activation functions
 //void activation_functions()
-
+//free the malloc
 int dinit(void)
 {
-    // TODO:
-    // Free up all the structures
-
+    free(num_neurons);
+    free(input);
+    free(desired_outputs);
+    free(cost);
+    free(lay);
     return SUCCESS_DINIT;
 }
