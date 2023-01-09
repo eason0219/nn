@@ -9,9 +9,9 @@ This is assighment 1
 
 ```javascript
 
-cd nn
+>cd nn
 
-make
+>make
 
 cc -g -Wall -Werror -c src/main.c -o build/backdrop.o
 
@@ -27,7 +27,7 @@ cc -pthread -lpthread -o backprop build/main.o build/layer.o build/neuron.o -lm 
 
 ```javascript
 
-make run
+>make run
 
 ./bin/backprop
 
